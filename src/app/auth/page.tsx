@@ -1,0 +1,7 @@
+import { signIn, signUp } from '@/app/actions';
+import { Notice, PageHeading } from '@/components/ui';
+
+export default async function AuthPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
+  const query = await searchParams;
+  return <><PageHeading eyebrow="АДУУMATCH · НЭВТРЭХ" title="Тавтай морил" description="Бүртгэлээ ашиглан адуу болон угшлаа удирдана уу."/><Notice error={query.error} message={query.message}/><div className="auth-layout"><div className="auth-intro"><p className="eyebrow">ТАНЫ АДУУНЫ БҮРТГЭЛ</p><h1>Өөрийн мэдээллээ эзэмш.</h1><p className="muted">Бүртгэлгүйгээр нээлттэй адуу болон туршилтын угшлыг үзэж болно.</p></div><section className="panel auth-card"><form action={signIn}><h2>Нэвтрэх</h2><label>Имэйл<input name="email" type="email" required autoComplete="email"/></label><label>Нууц үг<input name="password" type="password" required autoComplete="current-password"/></label><button className="button" type="submit">Нэвтрэх</button></form><form action={signUp}><h2>Шинэ бүртгэл</h2><label>Харагдах нэр<input name="display_name" maxLength={100} autoComplete="name"/></label><label>Имэйл<input name="email" type="email" required autoComplete="email"/></label><label>Нууц үг<input name="password" type="password" required minLength={8} autoComplete="new-password"/></label><button className="button secondary" type="submit">Бүртгэл үүсгэх</button></form></section></div></>;
+}
