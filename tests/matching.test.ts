@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { analyzeMating } from '../src/lib/analysis';
+import { horseQueryFailureCode } from '../src/lib/data';
 import { inbreedingCoefficient, matchPartners, pedigree } from '../src/lib/matching';
 import type { Horse } from '../src/lib/types';
 
@@ -70,4 +71,10 @@ test('analysis reports shared ancestors but withholds unsupported ratings',()=>{
  assert.equal(result.common[0].stallionAppearances,1);
  assert.equal(result.inbreedingCoefficient,null);
  assert.equal(result.performance.status,'Insufficient statistical evidence.');
+});
+
+test('horse query failures distinguish permission, schema, and other database errors',()=>{
+ assert.equal(horseQueryFailureCode({code:'42501',message:'permission denied'}),'HORSE_DATA_PERMISSION_ERROR');
+ assert.equal(horseQueryFailureCode({code:'42P01',message:'relation does not exist'}),'HORSE_DATA_SCHEMA_ERROR');
+ assert.equal(horseQueryFailureCode({code:'08006',message:'connection failure'}),'HORSE_DATA_QUERY_ERROR');
 });

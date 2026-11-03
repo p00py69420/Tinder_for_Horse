@@ -2,6 +2,26 @@ import { supabase } from './supabase/server';
 import { configured } from './supabase/config';
 import { demoHorses } from './demo';
 import type { Horse } from './types';
+
+type HorseTable = 'horses' | 'pedigree_relationships' | 'breeding_listings';
+type QueryError = { code: string; message: string; details: string; hint: string };
+
+export function horseQueryFailureCode(error: Pick<QueryError, 'code' | 'message'>) {
+ if(error.code==='42501'||/permission denied|row-level security|insufficient privilege/i.test(error.message)) return 'HORSE_DATA_PERMISSION_ERROR';
+ if(['42P01','42703','PGRST200','PGRST204','PGRST205'].includes(error.code)) return 'HORSE_DATA_SCHEMA_ERROR';
+ return 'HORSE_DATA_QUERY_ERROR';
+}
+
+function logHorseQueryFailure(operation:string,error:QueryError) {
+ console.error('[AduuMatch] Supabase horse data query failed', {
+  operation,
+  code:error.code,
+  message:error.message,
+  details:error.details,
+  hint:error.hint,
+ });
+}
+
 export async function currentUser() {
  if(!configured) return null;
  const db=await supabase(); const {data:{user}}=await db.auth.getUser(); return user;
@@ -10,11 +30,28 @@ export async function getHorses(): Promise<Horse[]> {
  if(!configured) return demoHorses;
  const db=await supabase();
  // Paginate past Supabase's default 1000-row response limit.
- async function rows(table:string, order:string) {
+ async function rows(table:HorseTable, order:string) {
   const all: Record<string,unknown>[]=[];
   for(let start=0;;start+=1000){
-   const {data,error}=await db.from(table).select('*').order(order).range(start,start+999);
-   if(error) throw new Error('Өгөгдөл уншиж чадсангүй. Supabase migration болон холболтыг шалгана уу.');
+   let result;
+   try {
+    result=await db.from(table).select('*').order(order).range(start,start+999);
+   } catch(error) {
+    console.error('[AduuMatch] Supabase horse data request failed before a response', {
+     operation:`select ${table}`,
+     errorName:error instanceof Error?error.name:'unknown',
+    });
+    throw new Error('HORSE_DATA_QUERY_ERROR');
+   }
+   const {data,error}=result;
+   if(error) {
+    logHorseQueryFailure(`select ${table}`,error);
+    throw new Error(horseQueryFailureCode(error));
+   }
+   if(!data) {
+    console.error('[AduuMatch] Supabase horse data query returned no data payload', {operation:`select ${table}`});
+    throw new Error('HORSE_DATA_QUERY_ERROR');
+   }
    all.push(...data); if(data.length<1000) return all;
   }
  }
