@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { analyzeMating } from '../src/lib/analysis';
-import { inbreedingCoefficient, pedigree } from '../src/lib/matching';
+import { inbreedingCoefficient, matchPartners, pedigree } from '../src/lib/matching';
 import type { Horse } from '../src/lib/types';
 
 function makeHorse(id:string,sex:Horse['sex'],sire?:string,dam?:string):Horse {
@@ -33,6 +33,16 @@ test('unknown parents reduce pedigree completeness rather than implying no relat
  const result=pedigree(mare,[mare,makeHorse('sire','stallion'),makeHorse('dam','mare')]);
  assert.equal(result.filled,2);
  assert.equal(result.total,62);
+});
+
+test('breeding match reasons use the five-generation ancestor total',()=>{
+ const mare=makeHorse('mare','mare','sire');
+ const sire=makeHorse('sire','stallion');
+ const candidate=makeHorse('candidate','stallion');
+ candidate.available=true;
+ const [match]=matchPartners(mare,[mare,sire,candidate]);
+ assert.match(match.reasons[3],/1\/62/);
+ assert.match(match.reasons[3],/0\/62/);
 });
 
 test('half-sibling mating coefficient is calculated from their shared sire',()=>{

@@ -88,7 +88,7 @@ begin
   if not p.published and p.owner_id<>auth.uid() then raise exception 'Parent is not accessible'; end if;
   if new.verified then raise exception 'Verification requires an administrator'; end if;
  end if;
- if p.sex <> case new.role when 'sire' then 'stallion' else 'mare' end then raise exception 'Parent sex does not match role'; end if;
+ if p.sex <> (case new.role when 'sire' then 'stallion' else 'mare' end) then raise exception 'Parent sex does not match role'; end if;
  if p.birth_year>=c.birth_year then raise exception 'Parent must be older than offspring'; end if;
  if exists (
   with recursive ancestors(id) as (

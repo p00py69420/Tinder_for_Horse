@@ -33,7 +33,7 @@ export function matchPartners(source: Horse, horses: Horse[], preferredBreed?: s
   const local=horse.province===source.province;
   // Internal sorting points, never a genetic probability or safety metric.
   const score=(sameBreed?30:0)+(reciprocal?10:0)+(local?15:0)+Math.min(a.filled,b.filled)-(shared.length?50:0)-(close?1000:0);
-  const reasons=[sameBreed?'Сонгосон үүлдрийн хүсэлтэд нийцсэн':'Үүлдрийн хүсэлтээс өөр',reciprocal?'Нөгөө талын үүлдрийн хүсэлтэд нийцсэн':'Нөгөө талын үүлдрийн хүсэлтээс өөр',local?'Ижил аймаг / хотод байрладаг':'Өөр аймаг / хотод байрладаг',`Угшлын бүртгэл: таны адуу ${a.filled}/30, нэр дэвшигч ${b.filled}/30`];
+  const reasons=[sameBreed?'Сонгосон үүлдрийн хүсэлтэд нийцсэн':'Үүлдрийн хүсэлтээс өөр',reciprocal?'Нөгөө талын үүлдрийн хүсэлтэд нийцсэн':'Нөгөө талын үүлдрийн хүсэлтээс өөр',local?'Ижил аймаг / хотод байрладаг':'Өөр аймаг / хотод байрладаг',`Угшлын бүртгэл: таны адуу ${a.filled}/62, нэр дэвшигч ${b.filled}/62`];
   const warning=close?'Ойрын төрөл эсвэл шууд өвөг–үр төл холбоо бүртгэгдсэн. Үржлийн сонголт гэж зөвлөхгүй.':shared.length?'Дундын өвөг бүртгэгдсэн. Мэргэжлийн үнэлгээ шаардлагатай.':'Бүртгэлд дундын өвөг олдоогүй. Энэ нь төрөлгүйг нотлохгүй.';
   return {horse,score,reasons,warning,shared,close,completeness:b.filled};
  }).sort((a,b)=>a.score===b.score?a.horse.name.localeCompare(b.horse.name):b.score-a.score);
